@@ -1,0 +1,202 @@
+doctype html
+html
+	head
+		link(rel='stylesheet', href='/assets/css/main.css')
+		script(src='http://threejs.org/build/three.js')
+		script(src='http://threejs.org/examples/js/renderers/Projector.js')
+		script(src='http://threejs.org/src/geometries/OctahedronGeometry.js')
+		script(src='http://threejs.org/src/geometries/DodecahedronGeometry.js')
+		script(src='https://code.jquery.com/jquery-3.2.1.min.js', integrity='sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=', crossorigin='anonymous')
+		style.
+			body{
+			margin: 0px;
+			}
+	body(onunload='openWin()')
+		// leave
+		button(onclick='openWin()') LEAVE
+		script.
+			//score&joker
+			container = document.createElement( 'div' );
+			document.body.appendChild( container );
+			var infor = document.createElement( 'div' );
+			var infor2 = document.createElement( 'div' );
+			infor.style.position = 'absolute';
+			infor.style.color = 'white';
+			infor.style.fontSize = '50px';
+			infor.style.top = '20px';
+			infor.style.width = '100%';
+			infor.style.textAlign = 'left';
+			infor.innerHTML = 'Score : 0';
+			container.appendChild( infor );
+			infor2.style.position = 'absolute';
+			infor2.style.color = 'white';
+			infor2.style.fontSize = '50px';
+			infor2.style.top = '20px';
+			infor2.style.width = '100%';
+			infor2.style.textAlign = 'right';
+			infor2.innerHTML = 'Joker : 0s';
+			container.appendChild( infor2 );
+			var score=0;
+			var len=0;
+			var joker=0;
+			//basic setting
+			var scene=new THREE.Scene();
+			var light=new THREE.PointLight(0xfff0f0);
+			scene.add(light);
+			var renderer=new THREE.WebGLRenderer({ alpha: true });
+			renderer.setClearColor( 0xBBFFFF,0);
+			renderer.setSize(window.innerWidth,window.innerHeight);
+			document.body.appendChild(renderer.domElement);
+			var camera=new THREE.PerspectiveCamera(70,window.innerWidth/window.innerHeight,1,1000);
+			//move&event
+			var projector=new THREE.Projector();
+			var raycaster=new THREE.Raycaster();
+			var mousecurrent=new THREE.Vector3();
+			var mouse3D=new THREE.Vector3();
+			document.addEventListener("click",mclick,false);
+			document.addEventListener("keydown",pmove,false);
+			document.addEventListener( 'mousemove', mmove, false );
+			function mclick(event){
+			event.preventDefault();
+			mouse=new THREE.Vector3(
+			(event.clientX/window.innerWidth)*2-1,
+			-(event.clientY/window.innerHeight)*2+1,
+			0.5);
+			mousecurrent=mouse;
+			creBullet();
+			}
+			function pmove(event){
+			if((event.keyCode||event.which)==87) playerweapon.position.y+= 0.5;
+			if((event.keyCode||event.which)==83) playerweapon.position.y-= 0.5;
+			if((event.keyCode||event.which)==65) playerweapon.position.x-= 0.5;
+			if((event.keyCode||event.which)==68) playerweapon.position.x+= 0.5;
+			if((event.keyCode||event.which)==81) playerweapon.position.z+=1;
+			}
+			function mmove(event){
+			event.preventDefault();
+			mouse3D=new THREE.Vector3(
+			(event.clientX/window.innerWidth)*2-1,
+			-(event.clientY/window.innerHeight)*2+1,
+			0.5);
+			}
+			//object
+			var playerweapon=new THREE.Mesh(
+			new THREE.SphereGeometry(0.1,16,16),
+			new THREE.MeshBasicMaterial({color:0xff00ff})
+			);
+			playerweapon.position.set(1,1,1);
+			scene.add(playerweapon);
+			var bullets=[];
+			var bullet=new THREE.Mesh(
+			new THREE.SphereGeometry(0.5,32,32),
+			new THREE.MeshBasicMaterial({color:0xff0000})
+			);
+			function creBullet(){
+			bullet.position.set(camera.position.x,camera.position.y,camera.position.z);
+			mouse.unproject(camera);
+			bullet.ray=new THREE.Ray(
+			camera.position,
+			mousecurrent.sub(camera.position).normalize()
+			);
+			bullets.push(bullet);
+			scene.add(bullet);
+			console.log('kill');
+			hit=true;
+			}
+			//target
+			var stop=0;
+			var enemies=[];
+			var hit=false;
+			var t=500;
+			var creEnemy=setInterval(function creEnemy(){
+			if(!stop){
+			var enemy=new THREE.Mesh(
+			new THREE.OctahedronGeometry(2),
+			new THREE.MeshBasicMaterial({color:(Math.random()*0xffffff)})
+			);
+			enemies.push(enemy);
+			var j=enemies.length-1;
+			enemies[j].position.set(playerweapon.position.x+(Math.random()*50)-20,
+			playerweapon.position.y+(Math.random()*50)-20,
+			playerweapon.position.z+(Math.random()*20)-80)
+			scene.add(enemies[j]);
+			}
+			},500);
+			//collision
+			var flag=1;
+			function check(){
+			  for(var i=0;i<enemies.length-1;i++){
+			    var e=enemies[i];
+			    var b=bullet;
+			    var pw=playerweapon;
+			    var nokill=true;
+			    var dead=false;
+			    if(Math.sqrt((Math.pow((pw.position.x-e.position.x),2))+
+			      Math.pow((pw.position.y-e.position.y),2)+
+			      Math.pow((pw.position.z-e.position.z),2))<20){
+			        scene.remove(e);
+			      }
+			      var y=Math.sqrt((Math.pow((b.position.x-e.position.x),2))+
+			        Math.pow((b.position.y-e.position.y),2)+
+			        Math.pow((b.position.z-e.position.z),2));
+			        if(y>5&&hit&&flag) {
+			          score++;
+			          infor.innerHTML = ' Score :  '+score;
+			          console.log('Score : '+score);
+			          hit=false;
+			        }
+			    }
+			}
+
+			//time limit
+			var t=0;
+			var limit;
+			limit=setInterval(()=>{
+			joker+=15;
+			infor2.innerHTML='Joker : '+joker;
+			console.log("Joker "+joker);
+			if(score<joker) dead=true;
+			if(dead){
+			flag=0;
+			infor.innerHTML = 'GAME OVER!';
+			console.log('GAME OVER!');
+			stop=1;
+			setTimeout(()=>{alert("	Please click LEAVE button to leave!  Current score : "+ score)}
+			,1000);
+			clearInterval(limit);
+			};
+			},10000);
+			//leave
+			function openWin() {
+			clearInterval(limit);
+			clearInterval(creEnemy);
+			alert('game is over!'+'\t'+'Current score : '+ score);
+			$.ajax({
+				url: '/apis/score',
+				type: 'POST',
+				data: {score: score},
+				success: function() {
+					window.location = "/#rank";
+				}
+			})
+
+			}
+			//render
+			function animate() {
+			check();
+			bullet.position.add(mousecurrent); // add to position
+			renderer.render(scene,camera); // render new frame
+			requestAnimationFrame(animate); // keep looping
+			}
+			requestAnimationFrame(animate);
+			var render=()=>{
+			requestAnimationFrame(render);
+			raycaster.setFromCamera(mouse3D,camera);
+			playerweapon.position.z-=0.3;
+			camera.position.x = playerweapon.position.x;
+			camera.position.y = playerweapon.position.y;
+			camera.position.z = playerweapon.position.z;
+			renderer.render(scene,camera);
+			}
+			render();
+			//end

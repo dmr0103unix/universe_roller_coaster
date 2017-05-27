@@ -1,0 +1,63 @@
+doctype html
+//
+	Dimension by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+html
+	head
+		title home
+		meta(charset='utf-8')
+		meta(name='viewport', content='width=device-width, initial-scale=1, user-scalable=no')
+		link(rel='stylesheet', href='/assets/css/main.css')
+		link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css')
+
+	body
+		// Wrapper
+		#wrapper
+			// Header
+			header#header
+				.logo
+					span.icon.fa.fa-space-shuttle
+				.content
+					.inner
+						h1 太空飛車
+						p 好玩的遊戲
+				nav
+					ul
+						if (username && authenticated)
+							li
+								a(href='/users/game') 玩遊戲
+							li
+								a(href='#rank') 排行榜
+							li
+								a(href='/users/signout') 登出
+						else
+							li
+								a(href='/users/signin') 登入
+							li
+								a(href='/users/register') 註冊
+						// <li><a href="#elements">Elements</a></li>
+			// Main
+			#main
+				// Rank
+				article#rank
+					table
+						tr
+							th 排名
+							th 玩家
+							th 最高分
+						-for( i ; i < length ; i++ )
+							tr
+								td #{i+1}
+								td #{arr[i].username}
+								td #{arr[i].score}
+			// Footer
+			footer#footer
+
+		// BG
+		#bg
+		// Scripts
+		script(src='/assets/js/jquery.min.js')
+		script(src='/assets/js/skel.min.js')
+		script(src='/assets/js/util.js')
+		script(src='/assets/js/main.js')
